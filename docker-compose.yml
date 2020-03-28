@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+  # The redis container
+  redis:
+    image: "redis:latest"
+    ports:
+      - 6379:6379
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.4
+
+  # Postgresql
+  postgresql:
+    image: "postgres"
+    ports:
+      - 5432:5432
+    environment: 
+      - POSTGRES_USER=teamlock
+      - POSTGRES_PASSWORD=teamlock
+      - POSTGRES_DB=teamlock
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.3
+  
+  teamlock:
+    image: "teamlock:latest"
+    ports:
+      - 80:80
+    environment: 
+      - REDIS_HOST=172.28.1.4
+      - REDIS_PORT=6379
+      - DB_NAME=teamlock
+      - DB_IP=172.28.1.3
+      - DB_PORT=5432
+      - DB_USER=teamlock
+      - DB_PASSWORD=teamlock
+    depends_on:
+      - "redis"
+      - "postgresql"
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.2
+
+# networking
+networks:
+  node_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
